@@ -8,6 +8,6 @@ ssh root@web << 'EOF'
 cd /root/
 rm -rf /root/dist
 unzip -o dist.zip -d /root/
-rm -rf /usr/share/nginx/html/dist
+rm -rf /var/www/html/*
 mv /root/dist/* /var/www/html/
 EOF
