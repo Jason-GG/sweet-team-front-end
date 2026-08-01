@@ -3,6 +3,7 @@ import AppLayout from '../components/layout/AppLayout'
 import GuidePage from '../pages/Guide'
 import GroupsPage from '../pages/Groups'
 import HomePage from '../pages/Home'
+import LoginPage from '../pages/Login'
 import MyTownPage from '../pages/MyTown'
 import BoothsPage from '../pages/Booths'
 import ChatPage from '../pages/Chat'
@@ -10,6 +11,10 @@ import ProfilePage from '../pages/Profile'
 import ErrorPage from '../pages/ErrorPage/index'
 
 export const router = createHashRouter([
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
   {
     path: '/',
     element: <AppLayout />,
