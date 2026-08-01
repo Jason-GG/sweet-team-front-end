@@ -1,5 +1,6 @@
 import { Globe, Save, Sparkles, UserRound } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import SelectBox, { type SelectOption } from '../../components/ui/SelectBox'
 import { cn } from '../../lib/utils'
 
 type LanguageOption = {
@@ -72,7 +73,13 @@ const avatarTones: AvatarTone[] = [
   },
 ]
 
-const ageGroups = ['Under 18', '18-22', '23-29', '30-39', '40+']
+const ageGroups: Array<SelectOption> = [
+  { value: 'Under 18', label: 'Under 18' },
+  { value: '18-22', label: '18-22' },
+  { value: '23-29', label: '23-29' },
+  { value: '30-39', label: '30-39' },
+  { value: '40+', label: '40+' },
+]
 
 function ProfilePage() {
   const [nickname, setNickname] = useState('')
@@ -138,27 +145,18 @@ function ProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="age-group" className="block text-[1.05rem] font-semibold text-slate-900">
+              <div className="block text-[1.05rem] font-semibold text-slate-900">
                 Age Group <span className="text-[#f056af]">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  id="age-group"
-                  value={ageGroup}
-                  onChange={(event) => setAgeGroup(event.target.value)}
-                  className="w-full appearance-none rounded-[14px] border border-[#e6dff0] bg-white px-4 py-3.5 text-[15px] text-slate-700 outline-none transition focus:border-[#c783ff] focus:ring-4 focus:ring-[#f2e4ff]"
-                >
-                  <option value="">Please select your age group.</option>
-                  {ageGroups.map((group) => (
-                    <option key={group} value={group}>
-                      {group}
-                    </option>
-                  ))}
-                </select>
-                <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
-                  ▾
-                </span>
               </div>
+              <SelectBox
+                value={ageGroup}
+                options={ageGroups}
+                onChange={setAgeGroup}
+                placeholder="Please select your age group."
+                className="w-full"
+                triggerClassName="h-auto rounded-[14px] border-[#e6dff0] px-4 py-3.5 text-slate-700 focus-visible:border-[#c783ff] focus-visible:ring-4 focus-visible:ring-[#f2e4ff]"
+                dropdownClassName="rounded-[14px] border-[#e6dff0]"
+              />
             </div>
 
             <div className="space-y-4">
