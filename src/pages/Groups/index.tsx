@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Heart, Plus, Users, X } from 'lucide-react'
+import SelectBox from '../../components/ui/SelectBox'
 import { boothMocks } from '../../features/booths/mocks/booths'
 import type { BoothCategory } from '../../features/booths/types'
 
@@ -155,7 +156,12 @@ function GroupsPage() {
   const [formError, setFormError] = useState<string | null>(null)
 
   const boothOptions = useMemo(
-    () => boothMocks.map((booth) => ({ id: booth.id, title: booth.title, category: booth.category })),
+    () =>
+      boothMocks.map((booth) => ({
+        value: booth.id,
+        label: booth.title,
+        description: booth.category,
+      })),
     []
   )
 
@@ -342,23 +348,18 @@ function GroupsPage() {
                 />
               </label>
 
-              <label className="block">
+              <div className="block">
                 <span className="text-[14px] font-bold text-[#262d3a]">Select your booth *</span>
-                <select
+                <SelectBox
                   value={formState.boothId}
-                  onChange={(event) =>
-                    setFormState((currentState) => ({ ...currentState, boothId: event.target.value }))
+                  onChange={(nextBoothId) =>
+                    setFormState((currentState) => ({ ...currentState, boothId: nextBoothId }))
                   }
-                  className="mt-2 h-11 w-full rounded-[10px] border border-[#e4e6ee] bg-white px-4 text-[15px] text-[#677083] outline-none transition focus:border-[#8f58de] focus:ring-2 focus:ring-[#efe5ff]"
-                >
-                  <option value="">Please choose your booth</option>
-                  {boothOptions.map((booth) => (
-                    <option key={booth.id} value={booth.id}>
-                      {booth.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  options={boothOptions}
+                  placeholder="Please choose your booth"
+                  className="mt-2"
+                />
+              </div>
 
               <label className="block">
                 <span className="text-[14px] font-bold text-[#262d3a]">Description</span>
