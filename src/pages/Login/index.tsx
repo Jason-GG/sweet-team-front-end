@@ -117,17 +117,17 @@ function LoginPage() {
           </div>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <Link
+              to="/register"
+              className="rounded-2xl border border-[#eadff2] bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-[#fbf8fe]"
+            >
+              Sign up with your email address
+            </Link>
             <button
               type="button"
               className="rounded-2xl border border-[#eadff2] bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-[#fbf8fe]"
             >
-              Continue with Google
-            </button>
-            <button
-              type="button"
-              className="rounded-2xl border border-[#eadff2] bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-[#fbf8fe]"
-            >
-              Continue with Apple
+              Continue with Google account
             </button>
           </div>
 

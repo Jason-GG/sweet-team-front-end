@@ -8,12 +8,17 @@ import MyTownPage from '../pages/MyTown'
 import BoothsPage from '../pages/Booths'
 import ChatPage from '../pages/Chat'
 import ProfilePage from '../pages/Profile'
+import RegisterPage from '../pages/Register'
 import ErrorPage from '../pages/ErrorPage/index'
 
 export const router = createHashRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />,
   },
   {
     path: '/',
