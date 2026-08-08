@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Heart, Plus, Users, X } from 'lucide-react'
 import SelectBox from '../../components/ui/SelectBox'
 import { boothMocks } from '../../features/booths/mocks/booths'
+import { useI18n } from '../../lib/i18n'
 import type { BoothCategory } from '../../features/booths/types'
 
 type GroupCard = {
@@ -150,6 +151,7 @@ function getAccentClass(category: BoothCategory) {
 }
 
 function GroupsPage() {
+  const t = useI18n()
   const [groups, setGroups] = useState<GroupCard[]>(seededGroups)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [formState, setFormState] = useState<GroupFormState>(defaultFormState)
@@ -222,17 +224,17 @@ function GroupsPage() {
     const selectedBooth = boothMocks.find((booth) => booth.id === formState.boothId)
 
     if (!trimmedName) {
-      setFormError('Group name is required.')
+      setFormError(t.groups.errors.requiredName)
       return
     }
 
     if (!selectedBooth) {
-      setFormError('Please choose a booth before creating a group.')
+      setFormError(t.groups.errors.chooseBooth)
       return
     }
 
     if (!Number.isFinite(parsedCapacity) || parsedCapacity < 2) {
-      setFormError('Maximum number of people must be at least 2.')
+      setFormError(t.groups.errors.minCapacity)
       return
     }
 
@@ -257,9 +259,9 @@ function GroupsPage() {
       <div className="mx-auto max-w-6xl space-y-6">
         <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-[44px] font-bold tracking-[-0.04em] text-[#283042]">Group</h1>
+            <h1 className="text-[44px] font-bold tracking-[-0.04em] text-[#283042]">{t.groups.title}</h1>
             <p className="mt-2 text-[17px] text-[#677083]">
-              A safe place to have deep conversations with a small group
+              {t.groups.subtitle}
             </p>
           </div>
 
@@ -269,13 +271,13 @@ function GroupsPage() {
             className="inline-flex items-center justify-center gap-3 self-start rounded-[10px] bg-gradient-to-r from-[#f255a7] to-[#a857ef] px-5 py-3 text-sm font-bold text-white shadow-[0_12px_24px_rgba(200,86,196,0.3)] transition-transform hover:-translate-y-0.5"
           >
             <Plus className="size-4" />
-            <span>Create a new group</span>
+            <span>{t.groups.createButton}</span>
           </button>
         </section>
 
         <section>
           <h2 className="text-[20px] font-extrabold tracking-[-0.02em] text-[#283042]">
-            Groups you can participate in
+            {t.groups.listTitle}
           </h2>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -287,14 +289,14 @@ function GroupsPage() {
                 <div className="space-y-3 pt-2">
                   <div className="flex flex-wrap gap-2">
                     <span className="rounded-md bg-[#f3f1f4] px-2.5 py-1 text-[12px] font-semibold text-[#47414e]">
-                      Participation Available
+                      {t.groups.availability}
                     </span>
                     <span className="rounded-md border border-[#e6e1ea] bg-white px-2.5 py-1 text-[12px] font-semibold text-[#47414e]">
                       {group.boothTitle}
                     </span>
                     {group.isPrivate ? (
                       <span className="rounded-md border border-[#ead7fb] bg-[#f7f0ff] px-2.5 py-1 text-[12px] font-semibold text-[#8e54d6]">
-                        Private
+                        {t.groups.private}
                       </span>
                     ) : null}
                   </div>
@@ -306,9 +308,7 @@ function GroupsPage() {
 
                   <div className="flex items-center gap-1.5 text-[13px] font-medium text-[#6f7688]">
                     <Users className="size-3.5" />
-                    <span>
-                      {group.currentMembers} / {group.capacity}person
-                    </span>
+                    <span>{t.groups.members(group.currentMembers, group.capacity)}</span>
                   </div>
                 </div>
               </article>
@@ -322,13 +322,13 @@ function GroupsPage() {
           <div className="w-full max-w-[480px] rounded-[18px] bg-white p-6 shadow-[0_26px_60px_rgba(24,20,42,0.28)] sm:p-7">
             <div className="flex items-start justify-between gap-4">
               <h2 className="text-[24px] font-extrabold tracking-[-0.03em] text-[#171a23]">
-                Create a new group
+                {t.groups.modalTitle}
               </h2>
               <button
                 type="button"
                 onClick={closeCreateModal}
                 className="rounded-full p-1 text-[#777d8c] transition-colors hover:bg-[#f4f0f6] hover:text-[#444d5d]"
-                aria-label="Close create group dialog"
+                aria-label={t.groups.closeDialog}
               >
                 <X className="size-5" />
               </button>
@@ -336,33 +336,33 @@ function GroupsPage() {
 
             <form className="mt-7 space-y-5" onSubmit={handleSubmit}>
               <label className="block">
-                <span className="text-[14px] font-bold text-[#262d3a]">Group Name *</span>
+                <span className="text-[14px] font-bold text-[#262d3a]">{t.groups.groupNameLabel}</span>
                 <input
                   type="text"
                   value={formState.name}
                   onChange={(event) =>
                     setFormState((currentState) => ({ ...currentState, name: event.target.value }))
                   }
-                  placeholder="Example: Consultation Room for Concerns in Their 20s"
+                  placeholder={t.groups.groupNamePlaceholder}
                   className="mt-2 h-11 w-full rounded-[10px] border border-[#d8dce5] px-4 text-[15px] text-[#2b3240] outline-none transition focus:border-[#8f58de] focus:ring-2 focus:ring-[#efe5ff]"
                 />
               </label>
 
               <div className="block">
-                <span className="text-[14px] font-bold text-[#262d3a]">Select your booth *</span>
+                <span className="text-[14px] font-bold text-[#262d3a]">{t.groups.selectBoothLabel}</span>
                 <SelectBox
                   value={formState.boothId}
                   onChange={(nextBoothId) =>
                     setFormState((currentState) => ({ ...currentState, boothId: nextBoothId }))
                   }
                   options={boothOptions}
-                  placeholder="Please choose your booth"
+                  placeholder={t.groups.selectBoothPlaceholder}
                   className="mt-2"
                 />
               </div>
 
               <label className="block">
-                <span className="text-[14px] font-bold text-[#262d3a]">Description</span>
+                <span className="text-[14px] font-bold text-[#262d3a]">{t.groups.descriptionLabel}</span>
                 <textarea
                   value={formState.description}
                   onChange={(event) =>
@@ -372,13 +372,13 @@ function GroupsPage() {
                     }))
                   }
                   rows={4}
-                  placeholder="このグループについて説明してください"
+                  placeholder={t.groups.descriptionPlaceholder}
                   className="mt-2 w-full rounded-[10px] border border-[#e4e6ee] px-4 py-3 text-[15px] text-[#2b3240] outline-none transition focus:border-[#8f58de] focus:ring-2 focus:ring-[#efe5ff]"
                 />
               </label>
 
               <label className="block">
-                <span className="text-[14px] font-bold text-[#262d3a]">maximum number of people</span>
+                <span className="text-[14px] font-bold text-[#262d3a]">{t.groups.maxPeopleLabel}</span>
                 <input
                   type="number"
                   min="2"
@@ -402,7 +402,7 @@ function GroupsPage() {
                   }
                   className="size-4 rounded border-[#ccd2dd] text-[#ae5ae9] focus:ring-[#e8d6ff]"
                 />
-                <span>Hold a private group (invitation only)</span>
+                <span>{t.groups.privateOnly}</span>
               </label>
 
               {formError ? (
@@ -416,7 +416,7 @@ function GroupsPage() {
                 className="inline-flex h-11 w-full items-center justify-center gap-3 rounded-[10px] bg-gradient-to-r from-[#f7a1c4] to-[#c895f4] text-[15px] font-bold text-white shadow-[0_12px_20px_rgba(208,146,220,0.3)] transition hover:brightness-[1.02]"
               >
                 <Heart className="size-4" />
-                <span>Create a group</span>
+                <span>{t.groups.submit}</span>
               </button>
             </form>
           </div>

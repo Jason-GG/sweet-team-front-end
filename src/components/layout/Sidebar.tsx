@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { navItems } from '../../lib/constants'
+import { useI18n } from '../../lib/i18n'
 import { cn } from '../../lib/utils'
 
 type SidebarProps = {
@@ -9,6 +10,8 @@ type SidebarProps = {
 }
 
 function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const t = useI18n()
+
   return (
     <aside
       className={cn(
@@ -21,7 +24,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           type="button"
           onClick={onClose}
           className="rounded-full border border-[#e3d9ec] bg-white p-2 text-slate-500"
-          aria-label="Close sidebar"
+          aria-label={t.topbar.closeSidebar}
         >
           <X className="size-4" />
         </button>
@@ -29,7 +32,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <nav
         className="mt-20 rounded-[18px] border border-[#ebe3f0] bg-white p-2 shadow-[0_18px_30px_rgba(84,63,112,0.1)] lg:mt-[175px]"
-        aria-label="Primary navigation"
+        aria-label={t.topbar.primaryNavigation}
       >
         {navItems.map((item) => {
           const Icon = item.icon
@@ -52,7 +55,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
               <span className="shrink-0">
                 <Icon className="size-4" />
               </span>
-              <span className="block text-[15px] font-semibold">{item.label}</span>
+              <span className="block text-[15px] font-semibold">{t.nav[item.key]}</span>
             </NavLink>
           )
         })}

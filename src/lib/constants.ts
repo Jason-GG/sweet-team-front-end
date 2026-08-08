@@ -11,55 +11,49 @@ import {
 } from 'lucide-react'
 import type { BoothFilter } from '../features/booths/types'
 
+export type NavItemKey = 'home' | 'booths' | 'groups' | 'chat' | 'myTown' | 'guide' | 'profile'
+
 type NavItem = {
-  label: string
+  key: NavItemKey
   to: string
   icon: LucideIcon
-  description: string
 }
 
 export const navItems: NavItem[] = [
   {
-    label: 'Home',
+    key: 'home',
     to: '/',
     icon: House,
-    description: 'Overview and featured activity',
   },
   {
-    label: 'Booths',
+    key: 'booths',
     to: '/booths',
     icon: Store,
-    description: 'Browse official and community booths',
   },
   {
-    label: 'Groups',
+    key: 'groups',
     to: '/groups',
     icon: Users,
-    description: 'Discover student-led spaces',
   },
   {
-    label: 'Personal Chat',
+    key: 'chat',
     to: '/chat',
     icon: MessageCircleMore,
-    description: 'Direct messages and private conversations',
   },
   {
-    label: 'My Town',
+    key: 'myTown',
     to: '/my-town',
     icon: MapPinned,
-    description: 'Local happenings and nearby support',
   },
   {
-    label: 'Guide',
+    key: 'guide',
     to: '/guide',
     icon: Compass,
-    description: 'Onboarding tips and campus navigation',
   },
   {
-    label: 'Profile',
+    key: 'profile',
     to: '/profile',
     icon: UserRound,
-    description: 'Personal settings and saved spaces',
   },
 ]
 

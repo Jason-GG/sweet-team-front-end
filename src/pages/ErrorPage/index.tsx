@@ -1,8 +1,10 @@
 import { AlertTriangle, ArrowLeft, Home } from 'lucide-react'
 import { isRouteErrorResponse, Link, useNavigate, useRouteError } from 'react-router-dom'
 import { usePageHealthCheck } from '../../features/auth/hooks/usePageHealthCheck'
+import { useI18n } from '../../lib/i18n'
 
 function ErrorPage() {
+  const t = useI18n()
   const navigate = useNavigate()
   const error = useRouteError()
 
@@ -11,11 +13,11 @@ function ErrorPage() {
   const isNotFound = isRouteErrorResponse(error) && error.status === 404
   const statusLabel = isRouteErrorResponse(error)
     ? `${error.status} ${error.statusText}`
-    : 'Unexpected route error'
-  const title = isNotFound ? 'Page not found' : 'Something went wrong'
+    : t.errorPage.unexpectedRouteError
+  const title = isNotFound ? t.errorPage.pageNotFound : t.errorPage.somethingWentWrong
   const message = isNotFound
-    ? 'The page you requested does not exist or may have been moved.'
-    : 'The page could not be loaded. Try going back or return to the home page.'
+    ? t.errorPage.notFoundMessage
+    : t.errorPage.genericMessage
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[linear-gradient(180deg,#fcf8fd_0%,#f8f4fb_100%)] px-4 py-10">
@@ -40,7 +42,7 @@ function ErrorPage() {
             className="inline-flex items-center gap-2 rounded-full border border-[#e3d9ec] bg-white px-5 py-3 text-sm font-semibold text-[#4d5565] transition-colors hover:bg-[#faf7fc]"
           >
             <ArrowLeft className="size-4" />
-            Go back
+            {t.errorPage.goBack}
           </button>
 
           <Link
@@ -48,12 +50,12 @@ function ErrorPage() {
             className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#a85cf5] to-[#f04fa3] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(206,95,214,0.28)]"
           >
             <Home className="size-4" />
-            Return home
+            {t.errorPage.returnHome}
           </Link>
         </div>
 
         <div className="mt-8 rounded-2xl border border-[#efe7f3] bg-[#fbf8fd] px-5 py-4 text-sm text-[#6a7282]">
-          If this keeps happening, check the route configuration in the app router or confirm the requested URL is valid.
+          {t.errorPage.helper}
         </div>
       </section>
     </main>

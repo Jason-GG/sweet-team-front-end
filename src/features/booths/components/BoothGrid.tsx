@@ -1,4 +1,5 @@
 import type { Booth } from '../types'
+import { useI18n } from '../../../lib/i18n'
 import BoothCard from './BoothCard'
 
 type BoothGridProps = {
@@ -34,10 +35,12 @@ function BoothSection({
 }
 
 function BoothGrid({ officialBooths, communityBooths }: BoothGridProps) {
+  const t = useI18n()
+
   return (
     <div className="space-y-10">
-      <BoothSection title="Official Booth" booths={officialBooths} />
-      <BoothSection title="Everyone's Booth" booths={communityBooths} />
+      <BoothSection title={t.booths.officialSection} booths={officialBooths} />
+      <BoothSection title={t.booths.communitySection} booths={communityBooths} />
     </div>
   )
 }

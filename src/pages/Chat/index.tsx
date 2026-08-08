@@ -1,11 +1,14 @@
 import PlaceholderPage from '../../components/ui/PlaceholderPage'
+import { useI18n } from '../../lib/i18n'
 
 function ChatPage() {
+  const t = useI18n()
+
   return (
     <PlaceholderPage
-      eyebrow="Personal Chat"
-      title="Private conversation surfaces can be layered in after the core discovery flow ships."
-      description="The route exists now so navigation and layout remain stable. Messaging behavior, unread state, and conversation storage can be added later without reworking the shell."
+      eyebrow={t.placeholders.chat.eyebrow}
+      title={t.placeholders.chat.title}
+      description={t.placeholders.chat.description}
     />
   )
 }

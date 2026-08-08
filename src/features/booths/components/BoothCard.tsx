@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { MessageSquareMore, Users } from 'lucide-react'
-import { formatGroupCount } from '../../../lib/utils'
+import { useI18n } from '../../../lib/i18n'
 import type { Booth } from '../types'
 import OfficialBadge from './OfficialBadge'
 
@@ -9,6 +9,7 @@ type BoothCardProps = {
 }
 
 function BoothCard({ booth }: BoothCardProps) {
+  const t = useI18n()
   const accentClass = booth.isOfficial
     ? booth.category === 'School Life'
       ? 'before:bg-[#5c9af6]'
@@ -26,7 +27,7 @@ function BoothCard({ booth }: BoothCardProps) {
     >
       <div className="mb-4 flex items-start justify-between gap-3 pt-2">
         <span className="rounded-md bg-[#f3f1f4] px-2.5 py-1 text-[12px] font-semibold text-[#46404e]">
-          {booth.category}
+          {t.booths.categories[booth.category]}
         </span>
         {booth.isOfficial ? <OfficialBadge /> : null}
       </div>
@@ -38,7 +39,7 @@ function BoothCard({ booth }: BoothCardProps) {
 
       <div className="mt-5 flex items-center gap-1.5 text-[13px] font-medium text-[#7b8391]">
         <Users className="size-3.5" />
-        <span>{formatGroupCount(booth.groupCount)}</span>
+        <span>{t.booths.groupCount(booth.groupCount)}</span>
       </div>
 
       <div className="mt-auto flex justify-end pt-3">
@@ -47,7 +48,7 @@ function BoothCard({ booth }: BoothCardProps) {
           className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#7b8391] transition-colors hover:text-[#515b6d]"
         >
           <MessageSquareMore className="size-3.5" />
-          See
+          {t.booths.see}
         </Link>
       </div>
     </article>

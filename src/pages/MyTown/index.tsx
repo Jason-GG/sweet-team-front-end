@@ -1,11 +1,14 @@
 import PlaceholderPage from '../../components/ui/PlaceholderPage'
+import { useI18n } from '../../lib/i18n'
 
 function MyTownPage() {
+  const t = useI18n()
+
   return (
     <PlaceholderPage
-      eyebrow="My Town"
-      title="Local community context has a dedicated route and room to grow."
-      description="Use this page later for neighborhood updates, nearby resources, and place-based recommendations once the foundational browsing experience is in place."
+      eyebrow={t.placeholders.myTown.eyebrow}
+      title={t.placeholders.myTown.title}
+      description={t.placeholders.myTown.description}
     />
   )
 }

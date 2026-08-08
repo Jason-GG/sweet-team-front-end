@@ -1,4 +1,5 @@
 import { cn } from '../../../lib/utils'
+import { useI18n } from '../../../lib/i18n'
 import type { BoothFilter } from '../types'
 
 type CategoryFilterTabsProps = {
@@ -12,6 +13,8 @@ function CategoryFilterTabs({
   activeFilter,
   onChange,
 }: CategoryFilterTabsProps) {
+  const t = useI18n()
+
   return (
     <div className="flex flex-wrap gap-2 rounded-2xl border border-[#eadff0] bg-white px-4 py-3 shadow-[0_6px_18px_rgba(92,72,123,0.08)]">
       {categories.map((category) => {
@@ -30,7 +33,7 @@ function CategoryFilterTabs({
                 : 'border-[#e6e2ec] bg-white text-[#474357] hover:border-[#d9cedf] hover:bg-[#fbf9fd]'
             )}
           >
-            {category}
+            {t.booths.categories[category]}
           </button>
         )
       })}

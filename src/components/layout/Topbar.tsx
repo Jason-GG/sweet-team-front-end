@@ -4,12 +4,14 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { logout } from '../../features/auth/api/authApi'
 import { ApiError } from '../../lib/api/client'
 import { navItems } from '../../lib/constants'
+import { useI18n } from '../../lib/i18n'
 
 type TopbarProps = {
   onMenuToggle: () => void
 }
 
 function Topbar({ onMenuToggle }: TopbarProps) {
+  const t = useI18n()
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -32,7 +34,7 @@ function Topbar({ onMenuToggle }: TopbarProps) {
       } else if (error instanceof Error && error.message) {
         setLogoutError(error.message)
       } else {
-        setLogoutError('Unable to log out right now.')
+        setLogoutError(t.topbar.unableToLogout)
       }
     } finally {
       setIsLoggingOut(false)
@@ -47,7 +49,7 @@ function Topbar({ onMenuToggle }: TopbarProps) {
             type="button"
             onClick={onMenuToggle}
             className="rounded-full border border-[#e3d9ec] bg-white p-2.5 text-slate-700 shadow-sm lg:hidden"
-            aria-label="Open navigation"
+            aria-label={t.topbar.openNavigation}
           >
             <Menu className="size-4" />
           </button>
@@ -56,13 +58,13 @@ function Topbar({ onMenuToggle }: TopbarProps) {
           </div>
           <div>
             <h2 className="text-[17px] font-bold text-[#9b4de1]">SweetTea</h2>
-            <p className="text-[14px] text-[#71788a]">Connect, learn, and nurture</p>
+            <p className="text-[14px] text-[#71788a]">{t.topbar.tagline}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
           <div className="hidden text-[14px] text-[#71788a] lg:block">
-            {currentItem.label}
+            {t.nav[currentItem.key]}
           </div>
 
           <button
@@ -72,7 +74,7 @@ function Topbar({ onMenuToggle }: TopbarProps) {
             className="inline-flex items-center gap-2 rounded-full border border-[#e3d9ec] bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-[#fbf8fe] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <LogOut className="size-4" />
-            {isLoggingOut ? 'Logging out...' : 'Logout'}
+            {isLoggingOut ? t.topbar.loggingOut : t.topbar.logout}
           </button>
         </div>
       </div>

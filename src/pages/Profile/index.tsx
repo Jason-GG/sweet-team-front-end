@@ -1,10 +1,11 @@
 import { Globe, Save, Sparkles, UserRound } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import SelectBox, { type SelectOption } from '../../components/ui/SelectBox'
+import { supportedLanguageDetails, supportedLanguages, useI18n, useLanguage } from '../../lib/i18n'
 import { cn } from '../../lib/utils'
 
 type LanguageOption = {
-  code: string
+  code: keyof typeof supportedLanguageDetails
   label: string
   nativeLabel: string
   flag: string
@@ -18,15 +19,10 @@ type AvatarTone = {
   avatarClassName: string
 }
 
-const languageOptions: LanguageOption[] = [
-  { code: 'ja', label: 'Japanese', nativeLabel: 'Japanese', flag: '🇯🇵' },
-  { code: 'en', label: 'English', nativeLabel: 'English', flag: '🇬🇧' },
-  { code: 'es', label: 'Spanish', nativeLabel: 'Español', flag: '🇪🇸' },
-  { code: 'hi', label: 'Hindi', nativeLabel: 'हिन्दी', flag: '🇮🇳' },
-  { code: 'zh', label: 'Chinese', nativeLabel: 'Chinese', flag: '🇨🇳' },
-  { code: 'fr', label: 'French', nativeLabel: 'Français', flag: '🇫🇷' },
-  { code: 'ar', label: 'Arabic', nativeLabel: 'العربية', flag: '🇸🇦' },
-]
+const languageOptions: LanguageOption[] = supportedLanguages.map((code) => ({
+  code,
+  ...supportedLanguageDetails[code],
+}))
 
 const avatarTones: AvatarTone[] = [
   {
@@ -73,23 +69,24 @@ const avatarTones: AvatarTone[] = [
   },
 ]
 
-const ageGroups: Array<SelectOption> = [
-  { value: 'Under 18', label: 'Under 18' },
-  { value: '18-22', label: '18-22' },
-  { value: '23-29', label: '23-29' },
-  { value: '30-39', label: '30-39' },
-  { value: '40+', label: '40+' },
-]
-
 function ProfilePage() {
+  const t = useI18n()
+  const { language, setLanguage } = useLanguage()
   const [nickname, setNickname] = useState('')
   const [ageGroup, setAgeGroup] = useState('')
-  const [selectedLanguage, setSelectedLanguage] = useState('ja')
   const [selectedTone, setSelectedTone] = useState('lavender')
   const [introduction, setIntroduction] = useState('')
 
+  const ageGroups: Array<SelectOption> = [
+    { value: 'Under 18', label: t.profile.ageGroups['Under 18'] },
+    { value: '18-22', label: t.profile.ageGroups['18-22'] },
+    { value: '23-29', label: t.profile.ageGroups['23-29'] },
+    { value: '30-39', label: t.profile.ageGroups['30-39'] },
+    { value: '40+', label: t.profile.ageGroups['40+'] },
+  ]
+
   const activeLanguage =
-    languageOptions.find((language) => language.code === selectedLanguage) ?? languageOptions[0]
+    languageOptions.find((option) => option.code === language) ?? languageOptions[0]
   const activeTone = avatarTones.find((tone) => tone.id === selectedTone) ?? avatarTones[0]
 
   const previewName = useMemo(() => {
@@ -99,8 +96,8 @@ function ProfilePage() {
       return trimmedNickname
     }
 
-    return 'Nickname'
-  }, [nickname])
+    return t.profile.previewNameFallback
+  }, [nickname, t.profile.previewNameFallback])
 
   const introductionRemaining = 300 - introduction.length
   const previewInitial = previewName.charAt(0).toUpperCase() || '?'
@@ -121,10 +118,10 @@ function ProfilePage() {
 
             <div>
               <h1 className="font-display text-3xl font-bold tracking-[-0.03em] text-[#a24ee6] sm:text-[2.1rem]">
-                Profile Settings
+                {t.profile.title}
               </h1>
               <p className="mt-1 text-sm text-slate-500 sm:text-base">
-                You can use it anonymously with peace of mind
+                {t.profile.subtitle}
               </p>
             </div>
           </div>
@@ -132,27 +129,27 @@ function ProfilePage() {
           <form className="mt-8 space-y-7">
             <div className="space-y-2">
               <label htmlFor="nickname" className="block text-[1.05rem] font-semibold text-slate-900">
-                Nickname <span className="text-[#f056af]">*</span>
+                {t.profile.nicknameLabel} <span className="text-[#f056af]">*</span>
               </label>
               <input
                 id="nickname"
                 value={nickname}
                 onChange={(event) => setNickname(event.target.value)}
-                placeholder="Please enter your favourite nickname."
+                placeholder={t.profile.nicknamePlaceholder}
                 className="w-full rounded-[14px] border border-[#e6dff0] bg-white px-4 py-3.5 text-[15px] text-slate-900 outline-none transition focus:border-[#c783ff] focus:ring-4 focus:ring-[#f2e4ff]"
               />
-              <p className="text-sm text-slate-500">Other members call him by this name</p>
+              <p className="text-sm text-slate-500">{t.profile.nicknameHelp}</p>
             </div>
 
             <div className="space-y-2">
               <div className="block text-[1.05rem] font-semibold text-slate-900">
-                Age Group <span className="text-[#f056af]">*</span>
+                {t.profile.ageGroupLabel} <span className="text-[#f056af]">*</span>
               </div>
               <SelectBox
                 value={ageGroup}
                 options={ageGroups}
                 onChange={setAgeGroup}
-                placeholder="Please select your age group."
+                placeholder={t.profile.ageGroupPlaceholder}
                 className="w-full"
                 triggerClassName="h-auto rounded-[14px] border-[#e6dff0] px-4 py-3.5 text-slate-700 focus-visible:border-[#c783ff] focus-visible:ring-4 focus-visible:ring-[#f2e4ff]"
                 dropdownClassName="rounded-[14px] border-[#e6dff0]"
@@ -162,18 +159,18 @@ function ProfilePage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-[1.05rem] font-semibold text-slate-900">
                 <Globe className="size-4 text-[#a24ee6]" />
-                <span>Language Settings</span>
+                <span>{t.profile.languageSettings}</span>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {languageOptions.map((language) => {
-                  const isActive = language.code === selectedLanguage
+                {languageOptions.map((option) => {
+                  const isActive = option.code === language
 
                   return (
                     <button
-                      key={language.code}
+                      key={option.code}
                       type="button"
-                      onClick={() => setSelectedLanguage(language.code)}
+                      onClick={() => setLanguage(option.code)}
                       className={cn(
                         'relative rounded-[16px] border bg-white px-4 py-5 text-center shadow-sm transition hover:-translate-y-0.5',
                         isActive
@@ -186,9 +183,9 @@ function ProfilePage() {
                           <Sparkles className="size-3.5" />
                         </span>
                       ) : null}
-                      <div className="text-3xl">{language.flag}</div>
+                      <div className="text-3xl">{option.flag}</div>
                       <p className="mt-3 text-[15px] font-semibold text-slate-700">
-                        {language.nativeLabel}
+                        {option.nativeLabel}
                       </p>
                     </button>
                   )
@@ -196,14 +193,14 @@ function ProfilePage() {
               </div>
 
               <p className="text-sm text-slate-500">
-                Selected language: {activeLanguage.flag} {activeLanguage.label}
+                {t.profile.selectedLanguage(activeLanguage.flag, activeLanguage.nativeLabel)}
               </p>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-[1.05rem] font-semibold text-slate-900">
                 <Sparkles className="size-4 text-[#a24ee6]" />
-                <span>Avatar Color</span>
+                <span>{t.profile.avatarColor}</span>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
@@ -235,14 +232,14 @@ function ProfilePage() {
 
             <div className="space-y-2">
               <label htmlFor="introduction" className="block text-[1.05rem] font-semibold text-slate-900">
-                Self-introduction (optional))
+                {t.profile.selfIntroductionLabel}
               </label>
               <textarea
                 id="introduction"
                 maxLength={300}
                 value={introduction}
                 onChange={(event) => setIntroduction(event.target.value)}
-                placeholder="あなた自身について少し教えてください"
+                placeholder={t.profile.selfIntroductionPlaceholder}
                 rows={5}
                 className="w-full resize-none rounded-[16px] border border-[#e6dff0] bg-white px-4 py-3.5 text-[15px] text-slate-900 outline-none transition focus:border-[#c783ff] focus:ring-4 focus:ring-[#f2e4ff]"
               />
@@ -252,7 +249,7 @@ function ProfilePage() {
             <section className="rounded-[24px] border border-[#f0ddfb] bg-gradient-to-br from-[#fbf5ff] to-[#fff7fb] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
               <div className="flex items-center gap-2 text-lg font-semibold text-slate-800">
                 <Sparkles className="size-4 text-[#a24ee6]" />
-                <span>Preview</span>
+                <span>{t.profile.preview}</span>
               </div>
 
               <div className="mt-5 flex items-center gap-4">
@@ -269,9 +266,9 @@ function ProfilePage() {
                     {previewName} <span className="text-xl">{activeLanguage.flag}</span>
                   </p>
                   <p className="mt-1 text-sm text-slate-500">
-                    {ageGroup || 'Age group pending'}
+                    {ageGroup || t.profile.ageGroupPending}
                     {' • '}
-                    {activeLanguage.label}
+                    {activeLanguage.nativeLabel}
                   </p>
                   {introduction.trim() ? (
                     <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">
@@ -287,7 +284,7 @@ function ProfilePage() {
               className="flex w-full items-center justify-center gap-3 rounded-[14px] bg-gradient-to-r from-[#c192f7] to-[#f29ac8] px-6 py-4 text-lg font-semibold text-white shadow-[0_18px_28px_rgba(212,132,205,0.24)] transition hover:-translate-y-0.5"
             >
               <Save className="size-5" />
-              Save profile
+              {t.profile.saveProfile}
             </button>
           </form>
         </div>

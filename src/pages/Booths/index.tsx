@@ -2,9 +2,11 @@ import { useState } from 'react'
 import BoothGrid from '../../features/booths/components/BoothGrid'
 import CategoryFilterTabs from '../../features/booths/components/CategoryFilterTabs'
 import { useBooths } from '../../features/booths/hooks/useBooths'
+import { useI18n } from '../../lib/i18n'
 import type { BoothFilter } from '../../features/booths/types'
 
 function BoothsPage() {
+  const t = useI18n()
   const [activeFilter, setActiveFilter] = useState<BoothFilter>('All')
   const { categories, communityBooths, error, isLoading, officialBooths, booths } =
     useBooths(activeFilter)
@@ -12,8 +14,8 @@ function BoothsPage() {
   return (
     <div className="space-y-6">
       <section>
-        <h1 className="text-[44px] font-bold tracking-[-0.04em] text-[#283042]">Booth List</h1>
-        <p className="mt-2 text-[17px] text-[#677083]">A place where themed groups gather</p>
+        <h1 className="text-[44px] font-bold tracking-[-0.04em] text-[#283042]">{t.booths.title}</h1>
+        <p className="mt-2 text-[17px] text-[#677083]">{t.booths.subtitle}</p>
 
         <div className="mt-7 max-w-5xl">
           <CategoryFilterTabs
@@ -26,7 +28,7 @@ function BoothsPage() {
 
       {isLoading ? (
         <section className="rounded-2xl border border-dashed border-[#d9cedf] bg-white/70 p-8 text-sm text-[#5d6677]">
-          Loading booth data...
+          {t.booths.loading}
         </section>
       ) : null}
 
@@ -38,7 +40,7 @@ function BoothsPage() {
 
       {!isLoading && !error && booths.length === 0 ? (
         <section className="rounded-2xl border border-dashed border-[#d9cedf] bg-white/70 p-8 text-sm text-[#5d6677]">
-          No booths match this category yet. Try switching to another tab.
+          {t.booths.empty}
         </section>
       ) : null}
 

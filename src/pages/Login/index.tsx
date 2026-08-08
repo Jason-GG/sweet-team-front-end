@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { login } from '../../features/auth/api/authApi'
 import { usePageHealthCheck } from '../../features/auth/hooks/usePageHealthCheck'
 import { ApiError } from '../../lib/api/client'
+import { useI18n } from '../../lib/i18n'
 
 type FormSubmitEvent = Parameters<NonNullable<ComponentProps<'form'>['onSubmit']>>[0]
 
@@ -20,6 +21,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 function LoginPage() {
+  const t = useI18n()
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
@@ -35,7 +37,7 @@ function LoginPage() {
     const normalizedEmail = email.trim()
 
     if (!normalizedEmail || !password) {
-      setErrorMessage('Enter both your email and password to sign in.')
+      setErrorMessage(t.login.missingCredentials)
       return
     }
 
@@ -50,7 +52,7 @@ function LoginPage() {
 
       navigate('/')
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, 'Unable to sign in right now.'))
+      setErrorMessage(getErrorMessage(error, t.login.unableToSignIn))
     } finally {
       setIsSubmitting(false)
     }
@@ -66,23 +68,18 @@ function LoginPage() {
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#f589bf] to-[#a46af1] text-white shadow-[0_8px_18px_rgba(196,104,211,0.28)]">
               <Leaf className="size-4" />
             </span>
-            SweetTea Login
+            {t.login.badge}
           </div>
 
           <h1 className="mt-8 max-w-xl font-display text-5xl leading-tight text-slate-900 sm:text-6xl">
-            Find your next trusted community space.
+            {t.login.heroTitle}
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-            Sign in to save favorite booths, join local groups, and keep your guide tailored to
-            what matters in your area.
+            {t.login.heroDescription}
           </p>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            {[
-              ['Saved booths', 'Keep official and community resources in one shortlist.'],
-              ['Local groups', 'Track conversations and meetup spaces without digging around.'],
-              ['Personal guide', 'Return to the support paths you care about most.'],
-            ].map(([title, detail]) => (
+            {t.login.featureCards.map(({ title, detail }) => (
               <article
                 key={title}
                 className="rounded-[24px] border border-[rgba(230,220,241,0.85)] bg-white/85 p-5 shadow-[0_14px_32px_rgba(103,76,134,0.08)]"
@@ -98,18 +95,18 @@ function LoginPage() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-coral)]">
-                Welcome back
+                {t.login.welcomeBack}
               </p>
-              <h2 className="mt-3 font-display text-3xl text-slate-900">Sign in to SweetTea</h2>
+              <h2 className="mt-3 font-display text-3xl text-slate-900">{t.login.signInTitle}</h2>
             </div>
             <div className="rounded-full bg-[#fff4fa] px-3 py-1 text-xs font-semibold text-[#d64d98]">
-              MVP preview
+              {t.login.mvpPreview}
             </div>
           </div>
 
           <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">Email</span>
+              <span className="mb-2 block text-sm font-semibold text-slate-700">{t.login.email}</span>
               <span className="flex items-center gap-3 rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 transition-colors focus-within:border-[#b76ef2] focus-within:bg-white">
                 <Mail className="size-4 text-[#a46af1]" />
                 <input
@@ -119,14 +116,14 @@ function LoginPage() {
                     setEmail(event.target.value)
                     setErrorMessage('')
                   }}
-                  placeholder="you@example.com"
+                  placeholder={t.login.emailPlaceholder}
                   className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
                 />
               </span>
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">Password</span>
+              <span className="mb-2 block text-sm font-semibold text-slate-700">{t.login.password}</span>
               <span className="flex items-center gap-3 rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 transition-colors focus-within:border-[#b76ef2] focus-within:bg-white">
                 <Lock className="size-4 text-[#a46af1]" />
                 <input
@@ -136,14 +133,14 @@ function LoginPage() {
                     setPassword(event.target.value)
                     setErrorMessage('')
                   }}
-                  placeholder="Enter your password"
+                  placeholder={t.login.passwordPlaceholder}
                   className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((value) => !value)}
                   className="text-slate-400 transition-colors hover:text-slate-700"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? t.login.hidePassword : t.login.showPassword}
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
@@ -156,10 +153,10 @@ function LoginPage() {
                   type="checkbox"
                   className="h-4 w-4 rounded border-[#d9cce7] text-[#b15ef0] focus:ring-[#b15ef0]"
                 />
-                Remember me
+                {t.login.rememberMe}
               </label>
               <a href="#" className="font-semibold text-[#9a4fe0] hover:text-[#7f36cd]">
-                Forgot password?
+                {t.login.forgotPassword}
               </a>
             </div>
 
@@ -170,13 +167,13 @@ function LoginPage() {
               disabled={isSubmitting}
               className="w-full rounded-2xl bg-[linear-gradient(135deg,#a95bf1_0%,#f059af_100%)] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_16px_28px_rgba(204,94,211,0.32)] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
+              {isSubmitting ? t.login.signingIn : t.login.signIn}
             </button>
           </form>
 
           <div className="mt-6 flex items-center gap-4 text-xs uppercase tracking-[0.18em] text-slate-400">
             <span className="h-px flex-1 bg-[#efe5f5]" />
-            or continue with
+            {t.login.divider}
             <span className="h-px flex-1 bg-[#efe5f5]" />
           </div>
 
@@ -185,20 +182,20 @@ function LoginPage() {
               to="/register"
               className="rounded-2xl border border-[#eadff2] bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-[#fbf8fe]"
             >
-              Sign up with your email address
+              {t.login.signUpWithEmail}
             </Link>
             <button
               type="button"
               className="rounded-2xl border border-[#eadff2] bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-[#fbf8fe]"
             >
-              Continue with Google account
+              {t.login.continueWithGoogle}
             </button>
           </div>
 
           <p className="mt-8 text-center text-sm text-slate-500">
-            New here?{' '}
+            {t.login.newHere}{' '}
             <Link to="/" className="font-semibold text-[#9a4fe0] hover:text-[#7f36cd]">
-              Explore the app
+              {t.login.exploreApp}
             </Link>
           </p>
         </section>
