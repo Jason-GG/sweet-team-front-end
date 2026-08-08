@@ -1,22 +1,121 @@
 import { Eye, EyeOff, Leaf, Lock, Mail, MapPin, ShieldCheck, UserRound } from 'lucide-react'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, type ComponentProps } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ApiError } from '../../lib/api/client'
+import { registerAccount, requestVerificationCode, verifyVerificationCode } from '../../features/auth/api/authApi'
+import { usePageHealthCheck } from '../../features/auth/hooks/usePageHealthCheck'
+import type { RegisterPayload } from '../../features/auth/types'
+
+type FormSubmitEvent = Parameters<NonNullable<ComponentProps<'form'>['onSubmit']>>[0]
+
+type RegisterFormState = {
+  email: string
+  username: string
+  password: string
+  confirmPassword: string
+  firstName: string
+  lastName: string
+  displayName: string
+  location: string
+  profileFocus: string
+  receiveUpdates: boolean
+  nickname: string
+  ageGroup: string
+  language: string
+  avatarColor: string
+  selfIntroduction: string
+}
+
+const initialFormState: RegisterFormState = {
+  email: '',
+  username: '',
+  password: '',
+  confirmPassword: '',
+  firstName: '',
+  lastName: '',
+  displayName: '',
+  location: '',
+  profileFocus: 'I am looking for community resources',
+  receiveUpdates: true,
+  nickname: '',
+  ageGroup: 'adult',
+  language: 'English',
+  avatarColor: 'Lavender',
+  selfIntroduction: '',
+}
+
+const ageGroupOptions = [
+  { label: 'Adult', value: 'adult' },
+  { label: 'Teen', value: 'teen' },
+  { label: 'Senior', value: 'senior' },
+]
+
+const languageOptions = ['English', 'Spanish', 'Chinese', 'Vietnamese', 'Other']
+
+const avatarColorOptions = ['Lavender', 'Coral', 'Sky', 'Mint', 'Sunflower']
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof ApiError) {
+    return error.message
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
+  return fallback
+}
+
+function buildRegisterPayload(formState: RegisterFormState): RegisterPayload {
+  return {
+    email: formState.email.trim(),
+    username: formState.username.trim(),
+    password: formState.password,
+    confirm_password: formState.confirmPassword,
+    first_name: formState.firstName.trim(),
+    last_name: formState.lastName.trim(),
+    display_name: formState.displayName.trim(),
+    location: formState.location.trim(),
+    profile_focus: formState.profileFocus,
+    receive_updates: formState.receiveUpdates,
+    nickname: formState.nickname.trim(),
+    age_group: formState.ageGroup,
+    language: formState.language,
+    avatar_color: formState.avatarColor,
+    self_introduction: formState.selfIntroduction.trim(),
+  }
+}
 
 function RegisterPage() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [emailAddress, setEmailAddress] = useState('')
+  const [formState, setFormState] = useState<RegisterFormState>(initialFormState)
   const [validationCode, setValidationCode] = useState('')
   const [emailError, setEmailError] = useState('')
   const [validationMessage, setValidationMessage] = useState('')
   const [codeError, setCodeError] = useState('')
+  const [submitError, setSubmitError] = useState('')
+  const [submitSuccess, setSubmitSuccess] = useState('')
   const [codeSent, setCodeSent] = useState(false)
   const [emailVerified, setEmailVerified] = useState(false)
+  const [isSendingCode, setIsSendingCode] = useState(false)
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  usePageHealthCheck()
 
   const isValidEmailAddress = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 
-  const handleSendValidationCode = () => {
-    const normalizedEmail = emailAddress.trim()
+  const updateField = <K extends keyof RegisterFormState>(field: K, value: RegisterFormState[K]) => {
+    setFormState((current) => ({
+      ...current,
+      [field]: value,
+    }))
+  }
+
+  const handleSendValidationCode = async () => {
+    const normalizedEmail = formState.email.trim()
 
     if (!isValidEmailAddress(normalizedEmail)) {
       setEmailVerified(false)
@@ -24,19 +123,36 @@ function RegisterPage() {
       setEmailError('Please enter a valid email address before requesting a code.')
       setValidationMessage('')
       setCodeError('')
+      setSubmitError('')
       return
     }
 
-    setEmailAddress(normalizedEmail)
+    setIsSendingCode(true)
     setEmailError('')
-    setCodeSent(true)
     setEmailVerified(false)
     setValidationCode('')
     setCodeError('')
-    setValidationMessage(`Validation code sent to ${normalizedEmail}. Enter the 6-digit code to continue.`)
+    setSubmitError('')
+    setSubmitSuccess('')
+
+    try {
+      const response = await requestVerificationCode({ email: normalizedEmail })
+
+      updateField('email', normalizedEmail)
+      setCodeSent(true)
+      setValidationMessage(
+        response.message ?? `Validation code sent to ${normalizedEmail}. Enter the 6-digit code to continue.`,
+      )
+    } catch (error) {
+      setCodeSent(false)
+      setValidationMessage('')
+      setEmailError(getErrorMessage(error, 'Unable to send a validation code right now.'))
+    } finally {
+      setIsSendingCode(false)
+    }
   }
 
-  const handleVerifyCode = () => {
+  const handleVerifyCode = async () => {
     if (!codeSent) {
       setCodeError('Request a validation code first.')
       return
@@ -48,15 +164,65 @@ function RegisterPage() {
       return
     }
 
-    setEmailVerified(true)
+    setIsVerifyingCode(true)
     setCodeError('')
-    setValidationMessage('Email address verified. You can finish creating your account.')
+    setSubmitError('')
+
+    try {
+      const response = await verifyVerificationCode({
+        email: formState.email.trim(),
+        code: validationCode.trim(),
+      })
+
+      setEmailVerified(true)
+      setValidationMessage(response.message ?? 'Email address verified. You can finish creating your account.')
+    } catch (error) {
+      setEmailVerified(false)
+      setCodeError(getErrorMessage(error, 'Unable to verify the code right now.'))
+    } finally {
+      setIsVerifyingCode(false)
+    }
   }
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormSubmitEvent) => {
+    event.preventDefault()
+
     if (!emailVerified) {
-      event.preventDefault()
       setCodeError('Verify your email address before creating your account.')
+      setSubmitError('')
+      return
+    }
+
+    const payload = buildRegisterPayload(formState)
+
+    if (!payload.username || !payload.first_name || !payload.last_name) {
+      setSubmitError('Username, first name, and last name are required.')
+      return
+    }
+
+    if (!payload.password || !payload.confirm_password) {
+      setSubmitError('Enter and confirm your password before creating your account.')
+      return
+    }
+
+    if (payload.password !== payload.confirm_password) {
+      setSubmitError('Password and confirm password must match.')
+      return
+    }
+
+    setIsSubmitting(true)
+    setSubmitError('')
+    setSubmitSuccess('')
+
+    try {
+      const response = await registerAccount(payload)
+
+      setSubmitSuccess(response.message ?? 'Account created successfully. You can sign in now.')
+      navigate('/')
+    } catch (error) {
+      setSubmitError(getErrorMessage(error, 'Unable to create your account right now.'))
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -119,6 +285,11 @@ function RegisterPage() {
                   <UserRound className="size-4 text-[#a46af1]" />
                   <input
                     type="text"
+                    value={formState.firstName}
+                    onChange={(event) => {
+                      updateField('firstName', event.target.value)
+                      setSubmitError('')
+                    }}
                     placeholder="Jamie"
                     className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
                   />
@@ -131,6 +302,11 @@ function RegisterPage() {
                   <UserRound className="size-4 text-[#a46af1]" />
                   <input
                     type="text"
+                    value={formState.lastName}
+                    onChange={(event) => {
+                      updateField('lastName', event.target.value)
+                      setSubmitError('')
+                    }}
                     placeholder="Lee"
                     className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
                   />
@@ -145,13 +321,16 @@ function RegisterPage() {
                   <Mail className="size-4 text-[#a46af1]" />
                   <input
                     type="email"
-                    value={emailAddress}
+                    value={formState.email}
                     onChange={(event) => {
-                      setEmailAddress(event.target.value)
+                      updateField('email', event.target.value)
                       setEmailVerified(false)
+                      setCodeSent(false)
                       setEmailError('')
                       setValidationMessage('')
                       setCodeError('')
+                      setSubmitError('')
+                      setSubmitSuccess('')
                     }}
                     placeholder="you@example.com"
                     className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
@@ -162,9 +341,10 @@ function RegisterPage() {
                   <button
                     type="button"
                     onClick={handleSendValidationCode}
+                    disabled={isSendingCode}
                     className="inline-flex items-center justify-center rounded-2xl border border-[#d8c5ea] bg-[#f8f1fd] px-4 py-3 text-sm font-semibold text-[#8d46d7] transition-colors hover:bg-[#f3e9fc]"
                   >
-                    {codeSent ? 'Resend validation code' : 'Send validation code'}
+                    {isSendingCode ? 'Sending...' : codeSent ? 'Resend validation code' : 'Send validation code'}
                   </button>
 
                   {emailVerified ? (
@@ -203,9 +383,10 @@ function RegisterPage() {
                   <button
                     type="button"
                     onClick={handleVerifyCode}
+                    disabled={isVerifyingCode}
                     className="inline-flex items-center justify-center rounded-2xl border border-[#d8c5ea] bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-[#fbf8fe]"
                   >
-                    Verify code
+                    {isVerifyingCode ? 'Verifying...' : 'Verify code'}
                   </button>
 
                   {codeError ? <p className="text-sm text-[#c94b74]">{codeError}</p> : null}
@@ -220,6 +401,11 @@ function RegisterPage() {
                   <Lock className="size-4 text-[#a46af1]" />
                   <input
                     type={showPassword ? 'text' : 'password'}
+                    value={formState.password}
+                    onChange={(event) => {
+                      updateField('password', event.target.value)
+                      setSubmitError('')
+                    }}
                     placeholder="Create a password"
                     className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
                   />
@@ -240,6 +426,11 @@ function RegisterPage() {
                   <Lock className="size-4 text-[#a46af1]" />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
+                    value={formState.confirmPassword}
+                    onChange={(event) => {
+                      updateField('confirmPassword', event.target.value)
+                      setSubmitError('')
+                    }}
                     placeholder="Repeat your password"
                     className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
                   />
@@ -257,11 +448,33 @@ function RegisterPage() {
 
             <div className="grid gap-5 sm:grid-cols-2">
               <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">Username</span>
+                <span className="flex items-center gap-3 rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 transition-colors focus-within:border-[#b76ef2] focus-within:bg-white">
+                  <UserRound className="size-4 text-[#a46af1]" />
+                  <input
+                    type="text"
+                    value={formState.username}
+                    onChange={(event) => {
+                      updateField('username', event.target.value)
+                      setSubmitError('')
+                    }}
+                    placeholder="Jason"
+                    className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
+                  />
+                </span>
+              </label>
+
+              <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-slate-700">Display name</span>
                 <span className="flex items-center gap-3 rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 transition-colors focus-within:border-[#b76ef2] focus-within:bg-white">
                   <UserRound className="size-4 text-[#a46af1]" />
                   <input
                     type="text"
+                    value={formState.displayName}
+                    onChange={(event) => {
+                      updateField('displayName', event.target.value)
+                      setSubmitError('')
+                    }}
                     placeholder="Neighborhood Helper"
                     className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
                   />
@@ -274,6 +487,11 @@ function RegisterPage() {
                   <MapPin className="size-4 text-[#a46af1]" />
                   <input
                     type="text"
+                    value={formState.location}
+                    onChange={(event) => {
+                      updateField('location', event.target.value)
+                      setSubmitError('')
+                    }}
                     placeholder="San Jose, CA"
                     className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
                   />
@@ -281,18 +499,118 @@ function RegisterPage() {
               </label>
             </div>
 
+            <div className="grid gap-5 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">Nickname</span>
+                <span className="flex items-center gap-3 rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 transition-colors focus-within:border-[#b76ef2] focus-within:bg-white">
+                  <UserRound className="size-4 text-[#a46af1]" />
+                  <input
+                    type="text"
+                    value={formState.nickname}
+                    onChange={(event) => {
+                      updateField('nickname', event.target.value)
+                      setSubmitError('')
+                    }}
+                    placeholder="Jason"
+                    className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
+                  />
+                </span>
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">Language</span>
+                <select
+                  value={formState.language}
+                  onChange={(event) => {
+                    updateField('language', event.target.value)
+                    setSubmitError('')
+                  }}
+                  className="w-full rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 text-[15px] text-slate-900 outline-none transition-colors focus:border-[#b76ef2] focus:bg-white"
+                >
+                  {languageOptions.map((language) => (
+                    <option key={language} value={language}>
+                      {language}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
             <label className="block">
               <span className="mb-2 block text-sm font-semibold text-slate-700">Profile focus</span>
-              <select className="w-full rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 text-[15px] text-slate-900 outline-none transition-colors focus:border-[#b76ef2] focus:bg-white">
+              <select
+                value={formState.profileFocus}
+                onChange={(event) => {
+                  updateField('profileFocus', event.target.value)
+                  setSubmitError('')
+                }}
+                className="w-full rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 text-[15px] text-slate-900 outline-none transition-colors focus:border-[#b76ef2] focus:bg-white"
+              >
                 <option>I am looking for community resources</option>
                 <option>I help organize support groups</option>
                 <option>I want both resources and local groups</option>
               </select>
             </label>
 
+            <div className="grid gap-5 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">Age group</span>
+                <select
+                  value={formState.ageGroup}
+                  onChange={(event) => {
+                    updateField('ageGroup', event.target.value)
+                    setSubmitError('')
+                  }}
+                  className="w-full rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 text-[15px] text-slate-900 outline-none transition-colors focus:border-[#b76ef2] focus:bg-white"
+                >
+                  {ageGroupOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">Avatar color</span>
+                <select
+                  value={formState.avatarColor}
+                  onChange={(event) => {
+                    updateField('avatarColor', event.target.value)
+                    setSubmitError('')
+                  }}
+                  className="w-full rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 text-[15px] text-slate-900 outline-none transition-colors focus:border-[#b76ef2] focus:bg-white"
+                >
+                  {avatarColorOptions.map((color) => (
+                    <option key={color} value={color}>
+                      {color}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-700">Self introduction</span>
+              <textarea
+                value={formState.selfIntroduction}
+                onChange={(event) => {
+                  updateField('selfIntroduction', event.target.value)
+                  setSubmitError('')
+                }}
+                placeholder="I like helping my community."
+                rows={4}
+                className="w-full rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 text-[15px] text-slate-900 outline-none transition-colors focus:border-[#b76ef2] focus:bg-white"
+              />
+            </label>
+
             <label className="inline-flex items-start gap-3 rounded-2xl border border-[#efe5f5] bg-[#fcfbfe] px-4 py-3.5 text-sm text-slate-600">
               <input
                 type="checkbox"
+                checked={formState.receiveUpdates}
+                onChange={(event) => {
+                  updateField('receiveUpdates', event.target.checked)
+                }}
                 className="mt-0.5 h-4 w-4 rounded border-[#d9cce7] text-[#b15ef0] focus:ring-[#b15ef0]"
               />
               <span>
@@ -301,12 +619,15 @@ function RegisterPage() {
               </span>
             </label>
 
+            {submitError ? <p className="text-sm text-[#c94b74]">{submitError}</p> : null}
+            {submitSuccess ? <p className="text-sm text-[#237a4c]">{submitSuccess}</p> : null}
+
             <button
               type="submit"
-              disabled={!emailVerified}
-              className="w-full rounded-2xl bg-[linear-gradient(135deg,#a95bf1_0%,#f059af_100%)] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_16px_28px_rgba(204,94,211,0.32)] transition-transform hover:-translate-y-0.5"
+              disabled={!emailVerified || isSubmitting}
+              className="w-full rounded-2xl bg-[linear-gradient(135deg,#a95bf1_0%,#f059af_100%)] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_16px_28px_rgba(204,94,211,0.32)] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Create account
+              {isSubmitting ? 'Creating account...' : 'Create account'}
             </button>
           </form>
 

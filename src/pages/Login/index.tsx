@@ -1,9 +1,60 @@
 import { Eye, EyeOff, Leaf, Lock, Mail } from 'lucide-react'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, type ComponentProps } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { login } from '../../features/auth/api/authApi'
+import { usePageHealthCheck } from '../../features/auth/hooks/usePageHealthCheck'
+import { ApiError } from '../../lib/api/client'
+
+type FormSubmitEvent = Parameters<NonNullable<ComponentProps<'form'>['onSubmit']>>[0]
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof ApiError) {
+    return error.message
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
+  return fallback
+}
 
 function LoginPage() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  usePageHealthCheck()
+
+  const handleSubmit = async (event: FormSubmitEvent) => {
+    event.preventDefault()
+
+    const normalizedEmail = email.trim()
+
+    if (!normalizedEmail || !password) {
+      setErrorMessage('Enter both your email and password to sign in.')
+      return
+    }
+
+    setIsSubmitting(true)
+    setErrorMessage('')
+
+    try {
+      await login({
+        email: normalizedEmail,
+        password,
+      })
+
+      navigate('/')
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error, 'Unable to sign in right now.'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(240,86,175,0.18),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(162,78,230,0.18),_transparent_32%),linear-gradient(180deg,#fff9fc_0%,#f7f1fb_54%,#fdfcff_100%)] px-4 py-8 sm:px-6 lg:px-8">
@@ -56,13 +107,18 @@ function LoginPage() {
             </div>
           </div>
 
-          <form className="mt-8 space-y-5">
+          <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
             <label className="block">
               <span className="mb-2 block text-sm font-semibold text-slate-700">Email</span>
               <span className="flex items-center gap-3 rounded-2xl border border-[#eadff2] bg-[#fcfbfe] px-4 py-3.5 transition-colors focus-within:border-[#b76ef2] focus-within:bg-white">
                 <Mail className="size-4 text-[#a46af1]" />
                 <input
                   type="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value)
+                    setErrorMessage('')
+                  }}
                   placeholder="you@example.com"
                   className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
                 />
@@ -75,6 +131,11 @@ function LoginPage() {
                 <Lock className="size-4 text-[#a46af1]" />
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(event.target.value)
+                    setErrorMessage('')
+                  }}
                   placeholder="Enter your password"
                   className="w-full border-0 bg-transparent text-[15px] text-slate-900 outline-none placeholder:text-slate-400"
                 />
@@ -102,11 +163,14 @@ function LoginPage() {
               </a>
             </div>
 
+            {errorMessage ? <p className="text-sm text-[#c94b74]">{errorMessage}</p> : null}
+
             <button
               type="submit"
-              className="w-full rounded-2xl bg-[linear-gradient(135deg,#a95bf1_0%,#f059af_100%)] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_16px_28px_rgba(204,94,211,0.32)] transition-transform hover:-translate-y-0.5"
+              disabled={isSubmitting}
+              className="w-full rounded-2xl bg-[linear-gradient(135deg,#a95bf1_0%,#f059af_100%)] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_16px_28px_rgba(204,94,211,0.32)] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign In
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 

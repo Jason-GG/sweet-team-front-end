@@ -1,5 +1,8 @@
-import { Menu } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
+import { LogOut, Menu } from 'lucide-react'
+import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { logout } from '../../features/auth/api/authApi'
+import { ApiError } from '../../lib/api/client'
 import { navItems } from '../../lib/constants'
 
 type TopbarProps = {
@@ -7,11 +10,34 @@ type TopbarProps = {
 }
 
 function Topbar({ onMenuToggle }: TopbarProps) {
+  const navigate = useNavigate()
   const { pathname } = useLocation()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
   const currentItem =
     navItems.find((item) =>
       item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)
     ) ?? navItems[0]
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    setLogoutError('')
+
+    try {
+      await logout()
+      navigate('/login')
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setLogoutError(error.message)
+      } else if (error instanceof Error && error.message) {
+        setLogoutError(error.message)
+      } else {
+        setLogoutError('Unable to log out right now.')
+      }
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
 
   return (
     <header className="sticky top-0 z-20 border-b border-[#ede3f1] bg-white/95 backdrop-blur">
@@ -34,10 +60,26 @@ function Topbar({ onMenuToggle }: TopbarProps) {
           </div>
         </div>
 
-        <div className="hidden text-[14px] text-[#71788a] lg:block">
-          {currentItem.label}
+        <div className="flex items-center gap-4">
+          <div className="hidden text-[14px] text-[#71788a] lg:block">
+            {currentItem.label}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="inline-flex items-center gap-2 rounded-full border border-[#e3d9ec] bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-[#fbf8fe] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <LogOut className="size-4" />
+            {isLoggingOut ? 'Logging out...' : 'Logout'}
+          </button>
         </div>
       </div>
+
+      {logoutError ? (
+        <div className="px-4 pb-3 text-sm text-[#c94b74] sm:px-6 lg:px-10">{logoutError}</div>
+      ) : null}
     </header>
   )
 }

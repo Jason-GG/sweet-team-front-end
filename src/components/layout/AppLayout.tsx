@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
+import { usePageHealthCheck } from '../../features/auth/hooks/usePageHealthCheck'
 import { cn } from '../../lib/utils'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 
 function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  usePageHealthCheck()
 
   return (
     <div className="min-h-screen bg-transparent text-slate-900">

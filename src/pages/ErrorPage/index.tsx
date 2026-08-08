@@ -1,9 +1,12 @@
 import { AlertTriangle, ArrowLeft, Home } from 'lucide-react'
 import { isRouteErrorResponse, Link, useNavigate, useRouteError } from 'react-router-dom'
+import { usePageHealthCheck } from '../../features/auth/hooks/usePageHealthCheck'
 
 function ErrorPage() {
   const navigate = useNavigate()
   const error = useRouteError()
+
+  usePageHealthCheck()
 
   const isNotFound = isRouteErrorResponse(error) && error.status === 404
   const statusLabel = isRouteErrorResponse(error)
