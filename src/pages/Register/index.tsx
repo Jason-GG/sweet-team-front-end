@@ -3,7 +3,7 @@ import { useState, type ComponentProps } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../../lib/api/client'
 import { registerAccount, requestVerificationCode, verifyVerificationCode } from '../../features/auth/api/authApi'
-import { usePageHealthCheck } from '../../features/auth/hooks/usePageHealthCheck'
+// import { usePageHealthCheck } from '../../features/auth/hooks/usePageHealthCheck'
 import { useI18n } from '../../lib/i18n'
 import type { RegisterPayload } from '../../features/auth/types'
 
@@ -105,7 +105,7 @@ function RegisterPage() {
   const [isVerifyingCode, setIsVerifyingCode] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  usePageHealthCheck()
+  // usePageHealthCheck()
 
   const isValidEmailAddress = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 
@@ -189,13 +189,15 @@ function RegisterPage() {
   const handleSubmit = async (event: FormSubmitEvent) => {
     event.preventDefault()
 
-    if (!emailVerified) {
-      setCodeError(t.register.errors.verifyEmailFirst)
+    const payload = buildRegisterPayload(formState)
+
+    if (!isValidEmailAddress(payload.email)) {
+      setEmailError(t.register.errors.invalidEmail)
       setSubmitError('')
       return
     }
 
-    const payload = buildRegisterPayload(formState)
+    setEmailError('')
 
     if (!payload.username || !payload.first_name || !payload.last_name) {
       setSubmitError(t.register.errors.requiredIdentity)
@@ -624,7 +626,7 @@ function RegisterPage() {
 
             <button
               type="submit"
-              disabled={!emailVerified || isSubmitting}
+              disabled={isSubmitting}
               className="w-full rounded-2xl bg-[linear-gradient(135deg,#a95bf1_0%,#f059af_100%)] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_16px_28px_rgba(204,94,211,0.32)] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? t.register.creatingAccount : t.register.createAccount}
