@@ -44,7 +44,7 @@ function BoothCard({ booth }: BoothCardProps) {
 
       <div className="mt-auto flex justify-end pt-3">
         <Link
-          to={`/booths?selected=${booth.slug}`}
+          to={`/booths/${booth.slug}`}
           className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#7b8391] transition-colors hover:text-[#515b6d]"
         >
           <MessageSquareMore className="size-3.5" />

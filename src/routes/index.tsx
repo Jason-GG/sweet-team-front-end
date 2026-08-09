@@ -5,6 +5,7 @@ import GroupsPage from '../pages/Groups'
 import HomePage from '../pages/Home'
 import LoginPage from '../pages/Login'
 import MyTownPage from '../pages/MyTown'
+import BoothDetailPage from '../pages/BoothDetail'
 import BoothsPage from '../pages/Booths'
 import ChatPage from '../pages/Chat'
 import ProfilePage from '../pages/Profile'
@@ -32,6 +33,10 @@ export const router = createHashRouter([
       {
         path: 'booths',
         element: <BoothsPage />,
+      },
+      {
+        path: 'booths/:slug',
+        element: <BoothDetailPage />,
       },
       {
         path: 'groups',
