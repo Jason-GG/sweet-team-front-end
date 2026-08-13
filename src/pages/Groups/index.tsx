@@ -1,21 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Heart, Plus, Users, X } from 'lucide-react'
+import { Heart, Plus, X } from 'lucide-react'
 import SelectBox from '../../components/ui/SelectBox'
 import { boothMocks } from '../../features/booths/mocks/booths'
+import GroupListItem from '../../features/groups/components/GroupListItem'
+import { useGroups } from '../../features/groups/hooks/useGroups'
+import type { GroupCard } from '../../features/groups/types'
 import { useI18n } from '../../lib/i18n'
-import type { BoothCategory } from '../../features/booths/types'
-
-type GroupCard = {
-  id: string
-  name: string
-  boothId: string
-  boothTitle: string
-  description: string
-  category: BoothCategory
-  currentMembers: number
-  capacity: number
-  isPrivate: boolean
-}
 
 type GroupFormState = {
   name: string
@@ -25,111 +15,6 @@ type GroupFormState = {
   isPrivate: boolean
 }
 
-const GROUPS_STORAGE_KEY = 'sweet-tea-groups'
-
-const seededGroups: GroupCard[] = [
-  {
-    id: 'recording-menstrual-cycles',
-    name: 'Recording Menstrual Cycles and Blood Sugar Levels',
-    boothId: 'menstruation-blood-sugar-levels',
-    boothTitle: 'Menstruation and blood sugar levels',
-    description: "Let's record and share changes in your menstrual cycle and blood sugar levels.",
-    category: 'Menstruation and Physical Condition',
-    currentMembers: 0,
-    capacity: 12,
-    isPrivate: false,
-  },
-  {
-    id: 'hypoglycemic-prevention-goods',
-    name: 'Hypoglycemic Prevention Goods',
-    boothId: 'career-desk',
-    boothTitle: 'Consultation about meal concerns',
-    description: "Let's share recommended hypoglycemic products",
-    category: 'Meals',
-    currentMembers: 0,
-    capacity: 20,
-    isPrivate: false,
-  },
-  {
-    id: 'carbo-count-beginners',
-    name: 'Carbo Count Beginners Group',
-    boothId: 'career-desk',
-    boothTitle: 'Consultation about meal concerns',
-    description: "If you're just starting Carbo Counting, let's learn together.",
-    category: 'Meals',
-    currentMembers: 0,
-    capacity: 15,
-    isPrivate: false,
-  },
-  {
-    id: 'physical-education-class',
-    name: 'Tips in Physical Education Class',
-    boothId: 'health-corner',
-    boothTitle: 'Tips for School Life',
-    description: "Let's talk about blood sugar management in physical education classes.",
-    category: 'School Life',
-    currentMembers: 0,
-    capacity: 10,
-    isPrivate: false,
-  },
-  {
-    id: 'jk-group',
-    name: 'JK',
-    boothId: 'health-corner',
-    boothTitle: 'Tips for School Life',
-    description: 'A small room for casual school-life check-ins.',
-    category: 'School Life',
-    currentMembers: 1,
-    capacity: 10,
-    isPrivate: false,
-  },
-  {
-    id: 'basketball-club',
-    name: 'Basketball Club Member—!',
-    boothId: 'health-corner',
-    boothTitle: 'Tips for School Life',
-    description: 'Compare routines for practices, tournaments, and after-school snacks.',
-    category: 'School Life',
-    currentMembers: 1,
-    capacity: 10,
-    isPrivate: false,
-  },
-  {
-    id: 'sweets-lover',
-    name: 'Sweets lover',
-    boothId: 'career-desk',
-    boothTitle: 'Consultation about meal concerns',
-    description: 'Sweets lovers, gather~!!',
-    category: 'Meals',
-    currentMembers: 3,
-    capacity: 100,
-    isPrivate: false,
-  },
-  {
-    id: 'housing-concerns',
-    name: '20Consultation Room for Concerns About Housing',
-    boothId: 'career-desk',
-    boothTitle: 'Consultation about meal concerns',
-    description:
-      'A place where diabetic patients of different generations can easily talk with each other.',
-    category: 'Meals',
-    currentMembers: 0,
-    capacity: 20,
-    isPrivate: false,
-  },
-  {
-    id: 'students-gather',
-    name: 'Students, gather',
-    boothId: 'health-corner',
-    boothTitle: 'Tips for School Life',
-    description: "Let's share the worries of school life",
-    category: 'School Life',
-    currentMembers: 0,
-    capacity: 8,
-    isPrivate: false,
-  },
-]
-
 const defaultFormState: GroupFormState = {
   name: '',
   boothId: '',
@@ -138,21 +23,9 @@ const defaultFormState: GroupFormState = {
   isPrivate: false,
 }
 
-function getAccentClass(category: BoothCategory) {
-  if (category === 'School Life') {
-    return 'before:bg-[#4b82f5]'
-  }
-
-  if (category === 'Meals') {
-    return 'before:bg-[#27c96c]'
-  }
-
-  return 'before:bg-[#f55aa4]'
-}
-
 function GroupsPage() {
   const t = useI18n()
-  const [groups, setGroups] = useState<GroupCard[]>(seededGroups)
+  const { groups, addGroup } = useGroups()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [formState, setFormState] = useState<GroupFormState>(defaultFormState)
   const [formError, setFormError] = useState<string | null>(null)
@@ -166,28 +39,6 @@ function GroupsPage() {
       })),
     []
   )
-
-  useEffect(() => {
-    const storedGroups = window.localStorage.getItem(GROUPS_STORAGE_KEY)
-
-    if (!storedGroups) {
-      return
-    }
-
-    try {
-      const parsedGroups = JSON.parse(storedGroups) as GroupCard[]
-
-      if (Array.isArray(parsedGroups) && parsedGroups.length > 0) {
-        setGroups(parsedGroups)
-      }
-    } catch {
-      window.localStorage.removeItem(GROUPS_STORAGE_KEY)
-    }
-  }, [])
-
-  useEffect(() => {
-    window.localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(groups))
-  }, [groups])
 
   useEffect(() => {
     if (!isCreateModalOpen) {
@@ -250,7 +101,7 @@ function GroupsPage() {
       isPrivate: formState.isPrivate,
     }
 
-    setGroups((currentGroups) => [nextGroup, ...currentGroups])
+    addGroup(nextGroup)
     closeCreateModal()
   }
 
@@ -282,36 +133,7 @@ function GroupsPage() {
 
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {groups.map((group) => (
-              <article
-                key={group.id}
-                className={`relative overflow-hidden rounded-[16px] border border-[#e7dfea] bg-white p-5 shadow-[0_10px_28px_rgba(75,58,98,0.08)] before:absolute before:inset-x-0 before:top-0 before:h-1 ${getAccentClass(group.category)}`}
-              >
-                <div className="space-y-3 pt-2">
-                  <div className="flex flex-wrap gap-2">
-                    <span className="rounded-md bg-[#f3f1f4] px-2.5 py-1 text-[12px] font-semibold text-[#47414e]">
-                      {t.groups.availability}
-                    </span>
-                    <span className="rounded-md border border-[#e6e1ea] bg-white px-2.5 py-1 text-[12px] font-semibold text-[#47414e]">
-                      {group.boothTitle}
-                    </span>
-                    {group.isPrivate ? (
-                      <span className="rounded-md border border-[#ead7fb] bg-[#f7f0ff] px-2.5 py-1 text-[12px] font-semibold text-[#8e54d6]">
-                        {t.groups.private}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <div>
-                    <h3 className="text-[17px] font-extrabold leading-8 text-[#2d3443]">{group.name}</h3>
-                    <p className="mt-1 text-[13px] leading-6 text-[#5d6677]">{group.description}</p>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 text-[13px] font-medium text-[#6f7688]">
-                    <Users className="size-3.5" />
-                    <span>{t.groups.members(group.currentMembers, group.capacity)}</span>
-                  </div>
-                </div>
-              </article>
+              <GroupListItem key={group.id} group={group} />
             ))}
           </div>
         </section>

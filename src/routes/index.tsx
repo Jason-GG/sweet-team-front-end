@@ -1,7 +1,9 @@
 import { createHashRouter } from 'react-router-dom'
 import AppLayout from '../components/layout/AppLayout'
+import CommunityPage from '../pages/Community'
 import GuidePage from '../pages/Guide'
 import GroupsPage from '../pages/Groups'
+import GroupDetailPage from '../pages/GroupDetail'
 import HomePage from '../pages/Home'
 import LoginPage from '../pages/Login'
 import MyTownPage from '../pages/MyTown'
@@ -33,6 +35,14 @@ export const router = createHashRouter([
       {
         path: 'booths',
         element: <BoothsPage />,
+      },
+      {
+        path: 'community',
+        element: <CommunityPage />,
+      },
+      {
+        path: 'community/:groupId',
+        element: <GroupDetailPage />,
       },
       {
         path: 'booths/:slug',

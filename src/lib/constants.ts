@@ -3,6 +3,7 @@ import {
   Compass,
   HeartHandshake,
   House,
+  LayoutGrid,
   MapPinned,
   MessageCircleMore,
   Store,
@@ -11,7 +12,7 @@ import {
 } from 'lucide-react'
 import type { BoothFilter } from '../features/booths/types'
 
-export type NavItemKey = 'home' | 'booths' | 'groups' | 'chat' | 'myTown' | 'guide' | 'profile'
+export type NavItemKey = 'home' | 'booths' | 'groups' | 'community' | 'chat' | 'myTown' | 'guide' | 'profile'
 
 type NavItem = {
   key: NavItemKey
@@ -34,6 +35,11 @@ export const navItems: NavItem[] = [
     key: 'groups',
     to: '/groups',
     icon: Users,
+  },
+  {
+    key: 'community',
+    to: '/community',
+    icon: LayoutGrid,
   },
   {
     key: 'chat',
